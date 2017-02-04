@@ -1,0 +1,27 @@
+{
+    "name": "bugsender/bugsender",
+    "description": "Bugsmonitor error notifier for PHP",
+    "license": "MIT",
+    "homepage": "https://github.com/bugsmonitor/bugsmonitor",
+    "type": "library",
+    "keywords": [
+        "exception", "bugsmonitor", "logging", "error", "bugs"
+    ],
+    "authors": [
+        {
+            "name": "Bugsmonitor",
+            "email": "info@bugsmonitor.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "ext-curl": "*"
+    },
+    "require-dev": {},
+    "version": "0.6.0",
+    "autoload": {
+        "psr-4": {
+            "Bugsender\\": "./src/"
+        }
+    }
+}
