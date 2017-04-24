@@ -1,20 +1,14 @@
-<?php namespace Bugsender;
+<?php namespace Bugsmonitor;
 
 class Handler
 {
 
     protected $client;
 
-    const FATAL    = 'fatal';
+    const FATAL   = 'fatal';
     const ERROR   = 'error';
     const WARNING = 'warning';
     const INFO    = 'info';
-
-
-    public function __construct()
-    {
-        //$this->client = $client;
-    }
 
 
     public function setup()
@@ -24,35 +18,22 @@ class Handler
         register_shutdown_function(array( $this, 'fatalErrorHandler' ));
     }
 
+
     public function exceptionHandler($exception)
     {
-        echo "<pre>", var_dump($exception), "</pre>";
-
         $type    = get_class($exception);
         $message = $exception->getMessage();
         $file    = $exception->getFile();
         $line    = $exception->getLine();
         $trace   = $exception->getTrace();
 
-        //$client = Client::getInstance();
-        //$client->send()
-
         Notifier::exception($type, $message, $file, $line, $trace);
-
-        //$this->client->send($type, $message, $file, $line, $exception);
     }
 
 
     public function errorHandler($errno, $errstr, $errfile = null, $errline = null)
     {
-        echo "<pre>";
-        var_dump([
-            $errno, self::translateError($errno), $errstr, $errfile, $errline
-        ]);
-        echo "</pre>";
-
-        //$type = 'PHP Error';
-        // $this->send($this->client->translateError($errno), $errstr, $errfile, $errline);
+        Notifier::error(self::translateError($errno), $errstr, $errfile, $errline);
     }
 
 
@@ -60,20 +41,23 @@ class Handler
     {
         $error = error_get_last();
 
-        echo '<p>Last error:</p>';
-        echo "<pre>", var_dump($error), "</pre>";
-
         if ($error !== null) {
             $type    = $error['type'];
             $message = $error['message'];
             $file    = $error['file'];
             $line    = $error['line'];
 
-            //$this->client->send($type, $message, $file, $line);
+            Notifier::fatalError($type, $message, $file, $line);
+
+            if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
+                error_clear_last();
+            }
         }
     }
 
-    protected static function translateError($errno) {
+
+    protected static function translateError($errno)
+    {
         switch ($errno) {
             case E_CORE_ERROR:
             case E_PARSE:
@@ -99,7 +83,6 @@ class Handler
                 return self::INFO;
         }
 
-         return self::ERROR;
+        return self::ERROR;
     }
-
 }

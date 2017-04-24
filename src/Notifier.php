@@ -1,4 +1,4 @@
-<?php namespace Bugsender;
+<?php namespace Bugsmonitor;
 
 class Notifier
 {
@@ -11,17 +11,25 @@ class Notifier
     }
 
 
-    public static function notify($type, $message, $file, $line, $exception = null)
+    public static function error($type, $message, $file, $line)
     {
-        $client = Client::getInstance();
-        $config = $client->getConfig();
+        $message = self::buildMessage($type, $message, $file, $line, null);
 
+        self::send($message);
+    }
+
+
+    public static function fatalError($type, $message, $file, $line)
+    {
+        $message = self::buildMessage($type, $message, $file, $line, null);
+
+        self::send($message);
     }
 
 
     protected static function buildMessage($type, $message, $file, $line, $trace)
     {
-        $client = Client::getInstance();
+        $client = Bugsmonitor::getInstance();
         $config = $client->getConfig();
 
         $source = ( $file !== null AND $line !== null ) ? self::getCode($file, $line, $config->getCodeLength()) : '';
@@ -39,6 +47,7 @@ class Notifier
                 'lang'         => 'php',
                 'lang_version' => PHP_VERSION,
             ),
+            'user'       => $config->getUser(),
             'request'    => array(
                 'request_type' => array_key_exists('REQUEST_METHOD', $_SERVER) ? mb_convert_encoding($_SERVER['REQUEST_METHOD'], 'utf-8', 'utf-8') : false,
                 'ip'           => self::getIp(),
@@ -188,23 +197,19 @@ class Notifier
 
     protected static function send($message)
     {
-        $client = Client::getInstance();
+        $client = Bugsmonitor::getInstance();
         $config = $client->getConfig();
+
+        $message['api_key'] = $config->getApiKey();
 
         $sData = json_encode($message);
 
-        var_dump($message);
-        die();
-
-        $hash    = hash_hmac('sha256', $sData, $config->getPrivateKey);
         $headers = array(
-            'X-Public: ' . $config->getPublicKey,
-            'X-Hash: ' . $hash,
-            'Content-Type: application/json',
+            'Content-Type: text/plain',
             'Content-Length: ' . strlen($sData)
         );
 
-        $ch = curl_init($config->getApiHost . $config->getApiPath);
+        $ch = curl_init($config->getApiHost() . $config->getApiPath());
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -214,13 +219,6 @@ class Notifier
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $sData);
         $result = curl_exec($ch);
-
-        if ( ! curl_errno($ch)) {
-            $info = curl_getinfo($ch);
-
-            var_dump($info);
-            echo 'Took ', $info['total_time'], ' seconds to send a request to ', $info['url'], "\n";
-        }
 
         curl_close($ch);
     }
