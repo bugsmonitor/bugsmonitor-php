@@ -1,8 +1,8 @@
-<?php  namespace Bugsender;
+<?php namespace Bugsmonitor;
 
 /**
  * Singleton
-*/
+ */
 
 class Singleton
 {
@@ -25,6 +25,7 @@ class Singleton
         if (self::$instance == false) {
             self::$instance = new static();
         }
+
         return self::$instance;
     }
 
