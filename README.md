@@ -15,9 +15,18 @@ In your `composer.json` add code:
 }
 ```
 
+## Usage
+```php
+$bugsMonitor = \Bugsmonitor\Bugsmonitor::getInstance();
+$bugsMonitor->init([
+    'apiKey' => '5118d47e4ac894f0b59ef18f7cff3f033da49227078b14fafd8d7f9e70c73502',
+]);
+$bugsMonitor->setHandlers();
+```
 
 
 ## Set user
+
 Sometimes you may need add user to bug report, but usually
 ```php
 $bugSender = \Bugsender\Bugsender::getInstance();
