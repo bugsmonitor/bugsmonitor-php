@@ -209,7 +209,9 @@ class Notifier
             'Content-Length: ' . strlen($sData)
         );
 
-        $ch = curl_init($config->getApiHost() . $config->getApiPath());
+        var_dump(implode('/', array( $config->getApiHost(), $config->getProjectKey(), $config->getApiPath() )));
+
+        $ch = curl_init(implode('/', array( $config->getApiHost(), $config->getProjectKey(), $config->getApiPath() )));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -222,4 +224,5 @@ class Notifier
 
         curl_close($ch);
     }
+
 }

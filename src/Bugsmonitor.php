@@ -29,6 +29,9 @@ class Bugsmonitor extends Singleton
         if ( ! array_key_exists('apiKey', $config)) {
             throw new \Exception('API key not provided.');
         }
+        if ( ! array_key_exists('projectKey', $config)) {
+            throw new \Exception('Project key not provided.');
+        }
 
         $this->config = new Config($config);
 

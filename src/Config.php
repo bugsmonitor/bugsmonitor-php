@@ -9,6 +9,9 @@ class Config
         // Application version
         'version'    => '',
 
+        // The BugsMonitor project key
+        'projectKey'     => '',
+
         // The BugsMonitor API key
         'apiKey'     => '',
 
@@ -168,6 +171,14 @@ class Config
         return $this->options['codeLength'];
     }
 
+
+    /**
+     * @return string
+     */
+    public function getProjectKey()
+    {
+        return $this->options['projectKey'];
+    }
 
     /**
      * @return string
