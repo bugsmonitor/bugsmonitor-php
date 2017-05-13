@@ -3,6 +3,9 @@
 class Config
 {
 
+    const NOTIFIER         = 'bugsmonitor-php';
+    const NOTIFIER_VERSION = '1.1.0';
+
     protected $options = array();
 
     protected $defaults = array(
@@ -10,7 +13,7 @@ class Config
         'version'    => '',
 
         // The BugsMonitor project key
-        'projectKey'     => '',
+        'projectKey' => '',
 
         // The BugsMonitor API key
         'apiKey'     => '',
@@ -179,6 +182,7 @@ class Config
     {
         return $this->options['projectKey'];
     }
+
 
     /**
      * @return string

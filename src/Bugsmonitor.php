@@ -49,6 +49,21 @@ class Bugsmonitor extends Singleton
 
 
     /**
+     * @param $exception
+     */
+    public function report($exception)
+    {
+        $type    = E_ERROR;
+        $message = $exception->getMessage();
+        $file    = $exception->getFile();
+        $line    = $exception->getLine();
+        $trace   = $exception->getTrace();
+
+        Notifier::exception($type, $message, $file, $line, $trace);
+    }
+
+
+    /**
      * @param      $config mixed
      *
      * @param null $val

@@ -3,6 +3,20 @@
 class Notifier
 {
 
+    const ERROR   = 'error';
+    const WARNING = 'warning';
+    const INFO    = 'info';
+    const DEBUG   = 'debug';
+
+
+    public static function notify($type, $message, $file, $line, $trace)
+    {
+        $message = self::buildMessage($type, $message, $file, $line, $trace);
+
+        self::send($message);
+    }
+
+
     public static function exception($type, $message, $file, $line, $trace)
     {
         $message = self::buildMessage($type, $message, $file, $line, $trace);
@@ -35,20 +49,22 @@ class Notifier
         $source = ( $file !== null AND $line !== null ) ? self::getCode($file, $line, $config->getCodeLength()) : '';
 
         $message = array(
-            'type'       => mb_convert_encoding($type, 'utf-8', 'utf-8'),
-            'url'        => mb_convert_encoding(self::full_path(true), 'utf-8', 'utf-8'),
-            'file'       => mb_convert_encoding($file, 'utf-8', 'utf-8'),
-            'line'       => mb_convert_encoding($line, 'utf-8', 'utf-8'),
-            'message'    => mb_convert_encoding($message, 'utf-8', 'utf-8'),
-            'trace'      => $trace,
-            'session'    => session_id(),
-            'env'        => array(
+            'type'             => mb_convert_encoding($type, 'utf-8', 'utf-8'),
+            'url'              => mb_convert_encoding(self::full_path(true), 'utf-8', 'utf-8'),
+            'file'             => mb_convert_encoding($file, 'utf-8', 'utf-8'),
+            'line'             => mb_convert_encoding($line, 'utf-8', 'utf-8'),
+            'message'          => mb_convert_encoding($message, 'utf-8', 'utf-8'),
+            'trace'            => $trace,
+            'session'          => session_id(),
+            'notifier'         => Config::NOTIFIER,
+            'notifier_version' => Config::NOTIFIER_VERSION,
+            'env'              => array(
                 'version'      => mb_convert_encoding($config->getVersion(), 'utf-8', 'utf-8'),
                 'lang'         => 'php',
                 'lang_version' => PHP_VERSION,
             ),
-            'user'       => $config->getUser(),
-            'request'    => array(
+            'user'             => $config->getUser(),
+            'request'          => array(
                 'request_type' => array_key_exists('REQUEST_METHOD', $_SERVER) ? mb_convert_encoding($_SERVER['REQUEST_METHOD'], 'utf-8', 'utf-8') : false,
                 'ip'           => self::getIp(),
                 'ua'           => array_key_exists('HTTP_USER_AGENT', $_SERVER) ? mb_convert_encoding($_SERVER['HTTP_USER_AGENT'], 'utf-8', 'utf-8') : false,
@@ -57,11 +73,10 @@ class Notifier
                 'post'         => false,
                 'cookie'       => ! empty($_COOKIE) ? self::encodeUtf8($_COOKIE) : false,
             ),
-            'additional' => self::encodeUtf8($client->getAdditionalData()),
-
-            'is_cli'   => php_sapi_name() == 'cli' ? 1 : 0,
-            'is_fatal' => in_array($type, array( E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE )) ? 1 : 0,
-            'code'     => $source,
+            'additional'       => self::encodeUtf8($client->getAdditionalData()),
+            'is_cli'           => php_sapi_name() == 'cli' ? 1 : 0,
+            'is_fatal'         => self::isFatalError($type) ? 1 : 0,
+            'code'             => $source,
         );
 
         if (isset($_POST) AND is_array($_POST) AND count($_POST) > 0) {
@@ -197,19 +212,14 @@ class Notifier
 
     protected static function send($message)
     {
-        $client = Bugsmonitor::getInstance();
-        $config = $client->getConfig();
-
+        $client             = Bugsmonitor::getInstance();
+        $config             = $client->getConfig();
         $message['api_key'] = $config->getApiKey();
-
-        $sData = json_encode($message);
-
-        $headers = array(
+        $sData              = json_encode($message);
+        $headers            = array(
             'Content-Type: text/plain',
             'Content-Length: ' . strlen($sData)
         );
-
-        var_dump(implode('/', array( $config->getApiHost(), $config->getProjectKey(), $config->getApiPath() )));
 
         $ch = curl_init(implode('/', array( $config->getApiHost(), $config->getProjectKey(), $config->getApiPath() )));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -223,6 +233,47 @@ class Notifier
         $result = curl_exec($ch);
 
         curl_close($ch);
+    }
+
+
+    public static function translateError($error)
+    {
+        switch ($error) {
+            case E_ERROR:
+            case E_PARSE:
+            case E_CORE_ERROR:
+            case E_COMPILE_ERROR:
+            case E_USER_ERROR:
+            case E_RECOVERABLE_ERROR:
+                return self::ERROR;
+
+            case E_WARNING:
+            case E_CORE_WARNING:
+            case E_COMPILE_WARNING:
+            case E_USER_WARNING:
+            case E_DEPRECATED:
+            case E_USER_DEPRECATED:
+                return self::WARNING;
+
+            case E_NOTICE:
+            case E_USER_NOTICE:
+            case E_STRICT:
+                return self::INFO;
+        }
+
+        return self::ERROR;
+    }
+
+
+    private static function isFatalError($type)
+    {
+        return in_array($type, array(
+            E_ERROR,
+            E_PARSE,
+            E_CORE_ERROR,
+            E_COMPILE_ERROR,
+            E_USER_ERROR,
+        ));
     }
 
 }
