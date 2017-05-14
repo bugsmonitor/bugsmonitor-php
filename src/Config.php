@@ -4,7 +4,7 @@ class Config
 {
 
     const NOTIFIER         = 'bugsmonitor-php';
-    const NOTIFIER_VERSION = '1.1.1';
+    const NOTIFIER_VERSION = '1.1.2';
 
     protected $options = array();
 

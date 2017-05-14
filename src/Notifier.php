@@ -74,7 +74,7 @@ class Notifier
                 'cookie'       => ! empty($_COOKIE) ? self::encodeUtf8($_COOKIE) : false,
             ),
             'additional'       => self::encodeUtf8($client->getAdditionalData()),
-            'is_cli'           => php_sapi_name() == 'cli' ? 1 : 0,
+            'is_cli'           => self::isCli() ? 1 : 0,
             'is_fatal'         => self::isFatalError($type) ? 1 : 0,
             'code'             => $source,
         );
@@ -110,6 +110,9 @@ class Notifier
 
     public static function full_path($qs = false)
     {
+        if (self::isCli()) {
+            return '';
+        }
         $s        = &$_SERVER;
         $ssl      = ( ! empty($s['HTTPS']) && $s['HTTPS'] == 'on' ) ? true : false;
         $sp       = strtolower($s['SERVER_PROTOCOL']);
@@ -131,6 +134,9 @@ class Notifier
 
     public static function getIP()
     {
+        if (self::isCli()) {
+            return '';
+        }
         if ( ! empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ( ! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -276,4 +282,8 @@ class Notifier
         ));
     }
 
+    private static function isCli()
+    {
+        return !(isset($_SERVER) && array_key_exists('REQUEST_METHOD', $_SERVER) && php_sapi_name() !== 'cli');
+    }
 }
