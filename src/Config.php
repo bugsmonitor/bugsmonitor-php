@@ -4,7 +4,7 @@ class Config
 {
 
     const NOTIFIER         = 'bugsmonitor-php';
-    const NOTIFIER_VERSION = '1.1.0';
+    const NOTIFIER_VERSION = '1.1.1';
 
     protected $options = array();
 
@@ -19,7 +19,7 @@ class Config
         'apiKey'     => '',
 
         // The BugsMonitor api url, do not change
-        'apiHost'    => 'https://api.bugsmonitor.com/',
+        'apiHost'    => 'https://api.bugsmonitor.com',
 
         // The BugsMonitor api path, do not change
         'apiPath'    => '',
